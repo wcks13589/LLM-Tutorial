@@ -30,63 +30,63 @@
 ### 步驟 1：登入 TWCC
 
 1. 訪問 [TWCC](https://www.twcc.ai) 並點擊 `登入`
-   ![TWCC 首頁](docs/images/01-home.png)
+   ![TWCC 首頁](../docs/images/01-home.png)
 
 2. 輸入您的電子郵件和密碼，透過 iService 登入
-   ![登入頁面](docs/images/02-login.png)
+   ![登入頁面](../docs/images/02-login.png)
 
 3. 登入後會重新導向到用戶儀表板
-   ![用戶儀表板](docs/images/03-dashboard.png)
+   ![用戶儀表板](../docs/images/03-dashboard.png)
 
 ### 步驟 2：選擇計畫
 
 4. 點擊左上角下拉選單，選擇「國網教育訓練用計畫」
    > ⚠️ **重要**：這是避免其他錢包產生費用的關鍵步驟
-   ![選擇計畫](docs/images/04-project.png)
+   ![選擇計畫](../docs/images/04-project.png)
 
 ### 步驟 3：建立開發型容器
 
 5. 點擊第二個下拉選單：`服務 > 開發型容器`
-   ![服務選單](docs/images/05-services.png)
+   ![服務選單](../docs/images/05-services.png)
 
 6. 點擊 `建立`
-   ![容器頁面](docs/images/06-interactive-container.png)
+   ![容器頁面](../docs/images/06-interactive-container.png)
 
 7. 搜尋 `nemo` 並點擊它
-   ![NeMo 容器](docs/images/07_1-nemo-container.png)
+   ![NeMo 容器](../docs/images/07_1-nemo-container.png)
 
 8. 選擇容器映像 `nemo-24.12:latest`，然後向下滾動
-   ![容器映像](docs/images/08-container-image.png)
+   ![容器映像](../docs/images/08-container-image.png)
 
 9. 選擇 `c.super` (V100 GPU x1) 配置類型，然後點擊 `檢視與建立`
-   ![GPU 配置](docs/images/09-container-gpu.png)
+   ![GPU 配置](../docs/images/09-container-gpu.png)
 
 10. 再次確認您使用的是正確的錢包「國網教育訓練用計畫」，然後點擊 `建立`
-    ![確認建立](docs/images/10-container-warning.png)
+    ![確認建立](../docs/images/10-container-warning.png)
 
 ### 步驟 4：等待容器啟動
 
 11. 等待容器初始化完成。幾分鐘後可以點擊 `重新整理` 檢查狀態
     > ⚠️ **重要提醒**：完成教學後，務必檢查容器並點擊 `刪除` 以避免用盡所有額度
-    ![容器初始化](docs/images/11-container-initializing.png)
+    ![容器初始化](../docs/images/11-container-initializing.png)
 
 12. 當容器顯示 `Ready` 時，點擊容器名稱進入詳細頁面
-    ![容器就緒](docs/images/12-container-ready.png)
+    ![容器就緒](../docs/images/12-container-ready.png)
 
 13. 向下滾動容器詳細頁面
-    ![容器詳細資訊](docs/images/13-container-details.png)
+    ![容器詳細資訊](../docs/images/13-container-details.png)
 
 ### 步驟 5：啟動 Jupyter
 
 14. 在 `Jupyter` 行點擊 `啟動` 按鈕開啟 Jupyter Notebook
-    ![啟動 Jupyter](docs/images/14-container-jupyter.png)
+    ![啟動 Jupyter](../docs/images/14-container-jupyter.png)
 
 15. 點擊 `New`，然後點擊 `Terminal` 開啟終端
-    ![Jupyter 介面](docs/images/15-jupyter.png)
-    ![新建終端](docs/images/16-jupyter-new.png)
+    ![Jupyter 介面](../docs/images/15-jupyter.png)
+    ![新建終端](../docs/images/16-jupyter-new.png)
 
 16. 現在您可以在終端中執行指令
-    ![Jupyter 終端](docs/images/17-jupyter-terminal.png)
+    ![Jupyter 終端](../docs/images/17-jupyter-terminal.png)
 
 ---
 
@@ -119,7 +119,7 @@ echo "✅ 基礎環境設定完成！"
 4. 確認刪除
 
 容器列表應該是空的：
-![空容器列表](docs/images/06-interactive-container.png)
+![空容器列表](../docs/images/06-interactive-container.png)
 
 ---
 
@@ -161,13 +161,13 @@ error: copy-fd: write returned: Disk quota exceeded
 **解決步驟**：
 
 1. 檢查儲存空間配額是否低於 100GiB
-   ![磁碟配額問題](docs/images/faq-disk-quota-issue-1.png)
+   ![磁碟配額問題](../docs/images/faq-disk-quota-issue-1.png)
 
 2. 清理不必要的檔案，確保使用空間低於 100GB
-   ![磁碟配額解決方案](docs/images/faq-disk-quota-solution-1.png)
+   ![磁碟配額解決方案](../docs/images/faq-disk-quota-solution-1.png)
 
 3. 在 HFS 用戶入口網站申請「國網教育訓練用計畫」
-   ![變更專案](docs/images/faq-disk-quota-solution-2.png)
+   ![變更專案](../docs/images/faq-disk-quota-solution-2.png)
 
 #### 4. sudo 權限問題
 
