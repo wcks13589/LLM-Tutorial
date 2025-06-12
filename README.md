@@ -8,10 +8,9 @@
 
 1. **🔄 模型轉換技能**：掌握 Hugging Face 與 NeMo 格式間的轉換
 2. **📚 預訓練實踐**：體驗大規模語言模型的持續預訓練
-3. **🛠️ 微調技術**：學會針對特定任務進行模型微調
-4. **⚡ PEFT 技術**：掌握 LoRA 等參數高效微調方法
-5. **📊 模型評估**：學會評估和測試模型性能
-6. **🚀 模型部署**：了解模型導出和部署流程
+3. **🛠️ 微調技術**：學會針對特定任務進行模型微調、掌握 LoRA 等參數高效微調方法
+4. **📊 模型評估**：學會評估和測試模型性能
+5. **🚀 模型部署**：了解模型導出和部署流程
 
 ---
 
@@ -20,7 +19,6 @@
 - [🚀 開始之前：環境設定](#🛠️-環境準備)
   - [📖 詳細環境設定指南](setup/README.md) ⭐
 - [📥 專案設置](#📥-專案設置)
-- [🏃‍♂️ 快速開始](#🏃‍♂️-快速開始)
 - [📖 詳細教學步驟](#📖-詳細教學步驟)
   - [第一章：模型轉換基礎](#第一章模型轉換基礎)
   - [第二章：持續預訓練實戰](#第二章持續預訓練實戰)
@@ -29,7 +27,6 @@
   - [第五章：模型評估與測試](#第五章模型評估與測試)
   - [第六章：模型部署與轉換](#第六章模型部署與轉換)
 - [💡 實戰技巧](#💡-實戰技巧)
-- [🔧 故障排除](#🔧-故障排除)
 - [📚 進階學習資源](#📚-進階學習資源)
 
 ---
@@ -365,7 +362,7 @@ nemo llm export -y \
 ## 📚 進階學習資源
 
 ### 官方文檔
-- [NeMo 官方文檔](https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/stable/)
+- [NeMo 官方文件](https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/stable/)
 - [NeMo GitHub](https://github.com/NVIDIA/NeMo)
 
 ### 進階主題
@@ -373,10 +370,6 @@ nemo llm export -y \
 2. **分散式訓練優化**
 3. **模型壓縮與量化**
 4. **自定義資料載入器**
-
-### 社群資源
-- [NeMo Discussions](https://github.com/NVIDIA/NeMo/discussions)
-- [NVIDIA Developer Forums](https://forums.developer.nvidia.com/)
 
 ---
 

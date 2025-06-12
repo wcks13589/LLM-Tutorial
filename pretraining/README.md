@@ -1,6 +1,6 @@
 # Llama 3.1-8B 預訓練腳本說明
 
-此文件說明如何使用 `pretraining.py` 腳本進行大型語言模型 Llama 3.1-8B 的預訓練。該腳本基於 NVIDIA NeMo 平臺，並利用 PyTorch Lightning 與 NeMo 進行預訓練工作。
+此文件說明如何使用 `pretraining.py` 腳本進行大型語言模型 Llama 3.1-8B 的預訓練。該腳本培於 NVIDIA NeMo 平臺，並利用 PyTorch Lightning 與 NeMo 進行預訓練工作。
 
 ## 主要功能
 
@@ -59,65 +59,32 @@ data
 
 ---
 
-## 資料準備步驟
-
-### 1. 下載資料集
-
-```bash
-# 下載中文 Wikinews 資料集
-python data_preparation/download_pretrain_data.py \
-    --dataset_name erhwenkuo/wikinews-zhtw \
-    --output_dir data/custom_dataset/json/wikinews-zhtw.jsonl
-```
-
-### 2. 資料預處理
-
-```bash
-# 建立預處理目錄
-mkdir -p data/custom_dataset/preprocessed
-
-# 使用 NeMo 的資料預處理工具
-python /opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py \
-    --input=data/custom_dataset/json/wikinews-zhtw.jsonl \
-    --json-keys=text \
-    --dataset-impl mmap \
-    --tokenizer-library=huggingface \
-    --tokenizer-type meta-llama/Llama-3.1-8B-Instruct \
-    --output-prefix=data/custom_dataset/preprocessed/wikinews \
-    --append-eod
-```
-
----
-
 ## 執行方法
 
-1. 確保資料已下載並預處理。
+1. 確保資料已下載並預處。
 
    預處理完畢後，資料目錄中必須包含 `.bin` 與 `.idx` 檔案，結構如上。
 
 2. 執行 `pretrain.py`：
 
    ```bash
-   # 預訓練參數設定
    JOB_NAME=llama31_pretraining
-   
+
    NUM_NODES=1
-   NUM_GPUS=1
-   
+   NUM_GPUS=8
+
    HF_MODEL_ID=Llama-3.1-8B-Instruct
-   NEMO_MODEL=nemo_ckpt/Llama-3.1-8B-Instruct
-   HF_TOKEN=$HF_TOKEN
-   
-   # 並行處理參數
-   TP=1  # Tensor Parallel
-   PP=1  # Pipeline Parallel
-   CP=1  # Context Parallel
-   
-   # 訓練參數
-   GBS=8          # Global Batch Size
-   MAX_STEPS=20   # 最大訓練步數(模型權重更新次數)
+   NEMO_MODEL=nemo_ckpt/${HF_MODEL_ID}
+   HF_TOKEN=<HF_TOKEN>
+
+   TP=2
+   PP=1
+   CP=1
+
+   GBS=2048
+   MAX_STEPS=100
    DATASET_PATH=data/custom_dataset/preprocessed/
-   
+
    python pretraining/pretrain.py \
       --executor local \
       --experiment ${JOB_NAME} \
@@ -167,8 +134,6 @@ python /opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py \
 | `--hf_model_id` | `str` | **(必填)** | 指定要使用的 Hugging Face 模型 ID，例如 `"meta-llama/Llama-3.1-8B-Instruct"`。 |
 | `-n, --nemo_model` | `str` | `None` | 指定預訓練好的 NeMo 模型權重路徑。 |
 | `--hf_token` | `str` | **(必填)** | Hugging Face 的 API Token，用以下載 tokenizer。 |
-| `-s, --seq_length` | `int` | `8192` | 設定模型輸入的序列長度。 |
-| `--fp8` | `action` | `False` | 啟用 FP8 訓練模式以提高性能和記憶體效率。 |
 
 ## **訓練參數**
 | 參數 | 類型 | 預設值 | 說明 |
@@ -188,14 +153,6 @@ python /opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py \
 | 參數 | 類型 | 預設值 | 說明 |
 |------|------|--------|------|
 | `-D, --dataset_path` | `str` | **(必填)** | 設定訓練資料夾的路徑，此資料夾應包含 .bin 和 .idx 檔案。 |
-
-## **WandB 記錄設定**
-| 參數 | 類型 | 預設值 | 說明 |
-|------|------|--------|------|
-| `--wandb` | `action` | `False` | 啟用 WandB 記錄功能。 |
-| `--wandb_project` | `str` | `None` | WandB 專案名稱，預設使用實驗名稱。 |
-| `--wandb_name` | `str` | `None` | WandB 執行名稱，預設使用自動生成的名稱。 |
-| `--wandb_token` | `str` | `None` | WandB 個人 API Token，用於認證。 |
 
 ---
 
