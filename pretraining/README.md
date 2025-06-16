@@ -2,6 +2,7 @@
 
 此文件說明如何使用 `pretraining.py` 腳本進行大型語言模型 Llama 3.1-8B 的預訓練。該腳本培於 NVIDIA NeMo 平臺，並利用 PyTorch Lightning 與 NeMo 進行預訓練工作。
 
+
 ## 主要功能
 
 - 配置資料集的路徑與參數。
@@ -61,46 +62,110 @@ data
 
 ## 執行方法
 
+### 前置準備
+
 1. 確保資料已下載並預處。
 
    預處理完畢後，資料目錄中必須包含 `.bin` 與 `.idx` 檔案，結構如上。
 
-2. 執行 `pretrain.py`：
+2. 設定基本參數：
 
    ```bash
    JOB_NAME=llama31_pretraining
-
    NUM_NODES=1
    NUM_GPUS=8
-
-   HF_MODEL_ID=Llama-3.1-8B-Instruct
-   NEMO_MODEL=nemo_ckpt/${HF_MODEL_ID}
+   HF_MODEL_ID=meta-llama/Llama-3.1-8B-Instruct
    HF_TOKEN=<HF_TOKEN>
-
-   TP=2
-   PP=1
-   CP=1
-
-   GBS=2048
-   MAX_STEPS=100
+   
+   # 並行處理參數
+   TP=1  # Tensor Parallel
+   PP=1  # Pipeline Parallel
+   CP=1  # Context Parallel
+   
+   # 訓練參數
+   GBS=8        # Global Batch Size
+   MAX_STEPS=20   # 最大訓練步數
    DATASET_PATH=data/custom_dataset/preprocessed/
-
-   python pretraining/pretrain.py \
-      --executor local \
-      --experiment ${JOB_NAME} \
-      --num_nodes ${NUM_NODES} \
-      --num_gpus ${NUM_GPUS} \
-      --model_size 8B \
-      --hf_model_id meta-llama/${HF_MODEL_ID} \
-      --nemo_model ${NEMO_MODEL} \
-      --hf_token ${HF_TOKEN} \
-      --max_steps ${MAX_STEPS} \
-      --global_batch_size ${GBS} \
-      --tensor_model_parallel_size ${TP} \
-      --pipeline_model_parallel_size ${PP} \
-      --context_parallel_size ${CP} \
-      --dataset_path ${DATASET_PATH}
    ```
+
+### 方法一：從頭開始預訓練模型
+
+**適用情況**：當您想要從零開始訓練模型時使用。
+
+**特點**：腳本會自動從基礎模型架構進行權重初始化
+
+**執行指令**：
+```bash
+python pretraining/pretrain.py \
+   --executor local \
+   --experiment ${JOB_NAME} \
+   --num_nodes ${NUM_NODES} \
+   --num_gpus ${NUM_GPUS} \
+   --model_size 8B \
+   --hf_model_id ${HF_MODEL_ID} \
+   --hf_token ${HF_TOKEN} \
+   --max_steps ${MAX_STEPS} \
+   --global_batch_size ${GBS} \
+   --tensor_model_parallel_size ${TP} \
+   --pipeline_model_parallel_size ${PP} \
+   --context_parallel_size ${CP} \
+   --dataset_path ${DATASET_PATH}
+```
+> **重要提醒**：本教學內容特別針對 V100 32GB GPU 進行配置優化
+> 
+> 由於本教學內容預計使用 V100 32GB 的 GPU 來實作，為確保可以順利執行模型的訓練，我們在 `pretrain.py` 中特地將模型的層數與維度大幅降低：
+> 
+> **模型配置對比**：
+> - **原始 Llama3.1 8B 模型**：
+>   - `num_layers = 32`
+>   - `hidden_size = 4096`
+>   - 參數量： 8B 個參數
+> - **調整後配置**：
+>   - `num_layers = 1`
+>   - `hidden_size = 128`
+>   - 參數量：大幅降低，適合單張 V100 GPU
+> 
+> **調整原因**：
+> - 確保在 V100 32GB 記憶體限制下能順利執行
+> - 降低訓練時間，提供更好的學習體驗
+> - 保持完整的訓練流程，讓學習者理解整個預訓練過程
+> 
+ > **程式碼位置**：這些配置調整位於 `pretrain.py` 中的 `configure_recipe` 函數內。
+> 
+> **具體修改的程式碼**：
+> ```python
+> recipe.model.config.num_layers = 1
+> recipe.model.config.hidden_size = 128
+> ```
+
+### 方法二：從預訓練模型開始繼續預訓練
+
+**適用情況**：當您想要從現有的 NeMo 格式模型開始，進行持續預訓練時使用。
+
+**前置條件**：
+- 需要先將 Hugging Face 模型轉換為 NeMo 格式
+- 確保 `${NEMO_MODEL}` 路徑下存在有效的 NeMo 模型檔案
+
+**執行指令**：
+```bash
+NEMO_MODEL=nemo_ckpt/Llama-3.1-8B-Instruct
+
+python pretraining/pretrain.py \
+   --executor local \
+   --experiment ${JOB_NAME} \
+   --num_nodes ${NUM_NODES} \
+   --num_gpus ${NUM_GPUS} \
+   --model_size 8B \
+   --hf_model_id ${HF_MODEL_ID} \
+   --nemo_model ${NEMO_MODEL} \
+   --hf_token ${HF_TOKEN} \
+   --max_steps ${MAX_STEPS} \
+   --global_batch_size ${GBS} \
+   --tensor_model_parallel_size ${TP} \
+   --pipeline_model_parallel_size ${PP} \
+   --context_parallel_size ${CP} \
+   --dataset_path ${DATASET_PATH}
+```
 
 ---
 

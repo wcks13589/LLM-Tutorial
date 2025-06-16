@@ -93,6 +93,12 @@ def configure_recipe(args):
         num_gpus_per_node=args.num_gpus,
     )
 
+    # 針對 V100 32GB GPU 的模型配置調整
+    # 由於本教學使用 V100 32GB 的 GPU 來實作，為確保可以順利執行 Llama3.1 8B 模型的訓練，
+    # 我們特地將模型的層數與維度降低，以確保可以在單張 V100 32GB GPU 上執行。
+    # 原始 Llama3.1 8B 模型：num_layers=32, hidden_size=4096
+    # 調整後的配置：num_layers=1, hidden_size=128
+    # 這樣的調整大幅降低了模型的參數量和記憶體需求，使其能夠在有限的 GPU 記憶體中運行
     recipe.model.config.num_layers = 1
     recipe.model.config.hidden_size = 128
     recipe.model.config.seq_length = args.seq_length

@@ -73,7 +73,7 @@ cd LLM-Tutorial
 2. **設定環境變數**：
    ```bash
    # 替換為您的實際 Token
-   export HF_TOKEN="your_hf_token_here"
+   export HF_TOKEN="your_hf_token"
    huggingface-cli login --token $HF_TOKEN
    ```
 
@@ -89,7 +89,7 @@ cd LLM-Tutorial
 # 下載 Llama 3.1 8B Instruct 模型
 huggingface-cli download meta-llama/Llama-3.1-8B-Instruct \
     --local-dir Llama-3.1-8B-Instruct \
-    --local-dir-use-symlinks=False
+    --exclude original/
 ```
 
 #### 1.2 轉換為 NeMo 格式
@@ -144,13 +144,15 @@ python /opt/NeMo/scripts/nlp_language_modeling/preprocess_data_for_megatron.py \
 
 #### 2.3 執行預訓練
 
+##### 前置準備
+
+設定基本參數：
+
 ```bash
-# 預訓練參數設定
 JOB_NAME=llama31_pretraining
 NUM_NODES=1
 NUM_GPUS=1
-HF_MODEL_ID=Llama-3.1-8B-Instruct
-HF_TOKEN=$HF_TOKEN
+HF_MODEL_ID=meta-llama/Llama-3.1-8B-Instruct
 
 # 並行處理參數
 TP=1  # Tensor Parallel
@@ -161,25 +163,89 @@ CP=1  # Context Parallel
 GBS=8          # Global Batch Size
 MAX_STEPS=20  # 最大訓練步數(模型權重更新次數)
 DATASET_PATH=data/custom_dataset/preprocessed/
-
-# 執行預訓練
-python pretraining/pretrain.py \
-    --executor local \
-    --experiment ${JOB_NAME} \
-    --num_nodes ${NUM_NODES} \
-    --num_gpus ${NUM_GPUS} \
-    --model_size 8B \
-    --hf_model_id meta-llama/${HF_MODEL_ID} \
-    --hf_token ${HF_TOKEN} \
-    --max_steps ${MAX_STEPS} \
-    --global_batch_size ${GBS} \
-    --tensor_model_parallel_size ${TP} \
-    --pipeline_model_parallel_size ${PP} \
-    --context_parallel_size ${CP} \
-    --dataset_path ${DATASET_PATH}
 ```
 
+##### 方法一：從頭開始預訓練模型
+
+**適用情況**：當您想要從零開始訓練模型時使用。
+
+**特點**：腳本會自動從基礎模型架構進行權重初始化
+
+**執行指令**：
+```bash
+python pretraining/pretrain.py \
+   --executor local \
+   --experiment ${JOB_NAME} \
+   --num_nodes ${NUM_NODES} \
+   --num_gpus ${NUM_GPUS} \
+   --model_size 8B \
+   --hf_model_id ${HF_MODEL_ID} \
+   --hf_token ${HF_TOKEN} \
+   --max_steps ${MAX_STEPS} \
+   --global_batch_size ${GBS} \
+   --tensor_model_parallel_size ${TP} \
+   --pipeline_model_parallel_size ${PP} \
+   --context_parallel_size ${CP} \
+   --dataset_path ${DATASET_PATH}
+```
+
+> **重要提醒**：本教學內容特別針對 V100 32GB GPU 進行配置優化
+> 
+> 由於本教學內容預計使用 V100 32GB 的 GPU 來實作，為確保可以順利執行模型的訓練，我們在 `pretrain.py` 中特地將模型的層數與維度大幅降低：
+> 
+> **模型配置對比**：
+> - **原始 Llama3.1 8B 模型**：
+>   - `num_layers = 32`
+>   - `hidden_size = 4096`
+>   - 參數量： 8B 個參數
+> - **調整後配置**：
+>   - `num_layers = 1`
+>   - `hidden_size = 128`
+>   - 參數量：大幅降低，適合單張 V100 GPU
+> 
+> **調整原因**：
+> - 確保在 V100 32GB 記憶體限制下能順利執行
+> - 降低訓練時間，提供更好的學習體驗
+> - 保持完整的訓練流程，讓學習者理解整個預訓練過程
+> 
+> **程式碼位置**：這些配置調整位於 `pretrain.py` 中的 `configure_recipe` 函數內。
+> 
+> **具體修改的程式碼**：
+> ```python
+> recipe.model.config.num_layers = 1
+> recipe.model.config.hidden_size = 128
+> ```
+
 > 📊 **監控訓練**：訓練過程中可以觀察 loss 變化來判斷模型學習狀況
+
+##### 方法二：從預訓練模型開始繼續預訓練
+
+**適用情況**：當您想要從現有的 NeMo 格式模型開始，進行持續預訓練時使用。
+
+**前置條件**：
+- 需要先將 Hugging Face 模型轉換為 NeMo 格式
+- 確保 `${NEMO_MODEL}` 路徑下存在有效的 NeMo 模型檔案
+
+**執行指令**：
+```bash
+NEMO_MODEL=nemo_ckpt/Llama-3.1-8B-Instruct
+
+python pretraining/pretrain.py \
+   --executor local \
+   --experiment ${JOB_NAME} \
+   --num_nodes ${NUM_NODES} \
+   --num_gpus ${NUM_GPUS} \
+   --model_size 8B \
+   --hf_model_id ${HF_MODEL_ID} \
+   --nemo_model ${NEMO_MODEL} \
+   --hf_token ${HF_TOKEN} \
+   --max_steps ${MAX_STEPS} \
+   --global_batch_size ${GBS} \
+   --tensor_model_parallel_size ${TP} \
+   --pipeline_model_parallel_size ${PP} \
+   --context_parallel_size ${CP} \
+   --dataset_path ${DATASET_PATH}
+```
 
 ---
 
@@ -233,7 +299,7 @@ python finetuning/finetune.py \
     --peft lora
 ```
 
-> 🎯 **LoRA 優勢**：參數高效微調，大幅降低計算資源需求
+> 🎯 **全參數微調**：若要進行全參數的微調，請移除`--peft lora`
 
 ---
 
