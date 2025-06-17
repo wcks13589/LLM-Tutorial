@@ -65,6 +65,8 @@ git clone https://github.com/wcks13589/LLM-Tutorial.git
 cd LLM-Tutorial
 ```
 
+> 💡 **提示**：請確保在 `LLM-Tutorial` 專案目錄中執行後續指令。
+
 ### 🔑 設定 Hugging Face 權限
 
 申請並設定您的 Hugging Face Token：

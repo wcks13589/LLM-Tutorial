@@ -40,7 +40,7 @@
 
 ### 步驟 2：選擇計畫
 
-4. 點擊左上角下拉選單，選擇「國網教育訓練用計畫」
+4. 點擊左上角下拉選單，選擇「NCHC-NVIDIA Joint Lab 教育訓練」
    > ⚠️ **重要**：這是避免其他錢包產生費用的關鍵步驟
    ![選擇計畫](../docs/images/04-project.png)
 
@@ -139,11 +139,14 @@ mv ~/.bashrc ~/.bashrc.bak
 # 重新啟動容器，然後重新執行環境設定步驟
 ```
 
-#### 2. click.core 導入錯誤
+#### 2. click 導入錯誤
 
-遇到此錯誤訊息時：
+遇到下列錯誤訊息時：
 ```
 ImportError: cannot import name 'ParameterSource' from 'click.core'
+```
+```
+ModuleNotFoundError: No module named 'click.shell_completion'
 ```
 
 **解決方案**：
