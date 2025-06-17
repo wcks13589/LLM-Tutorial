@@ -188,6 +188,18 @@ env: 'rm': Permission denied
 source ~/.bashrc
 ```
 
+#### 5. 套件版本不相依
+```
+ModuleNotFoundError: No module named 'pyarrow_hotfix'
+```
+
+如果之前個人帳號在國網上有先前裝過的舊版datasets library，會使用到舊版本導致的錯誤
+
+**解決方案**：
+```
+pip install pyarrow-hotfix
+```
+
 ## 🎯 下一步
 
 環境設定完成後，您可以：
