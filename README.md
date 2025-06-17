@@ -223,6 +223,8 @@ python pretraining/pretrain.py \
 
 ##### 方法二：從預訓練模型開始繼續預訓練
 
+> ⚠️ **注意**：此方法在本 Bootcamp 實作中不會執行，由於資源限制，我們專注於方法一的實踐學習。此部分僅供參考和學習使用。
+
 **適用情況**：當您想要從現有的 NeMo 格式模型開始，進行持續預訓練時使用。
 
 **前置條件**：
@@ -324,8 +326,6 @@ head -n 100 data/reasoning_dataset/chat.jsonl > data/reasoning_dataset/chat_subs
 #### 4.2 資料預處理與策展
 
 ```bash
-export UCX_MEMTYPE_CACHE=n
-export UCX_TLS=tcp
 # 執行資料策展與預處理
 python data_preparation/curate_reasoning_data.py \
     --input-dir "data/reasoning_dataset" \
@@ -339,6 +339,8 @@ python data_preparation/curate_reasoning_data.py \
     --device "gpu" \
     --n-workers 1
 ```
+
+> 💡 **執行提示**：此程式執行過程中可能會出現一些錯誤訊息，但只要輸出資料夾 `data/reasoning_dataset/curated-data` 內有檔案產生就算執行成功，可以忽略錯誤訊息繼續後續步驟。
 
 #### 4.3 執行 Reasoning LoRA 微調
 
