@@ -101,13 +101,14 @@ def configure_recipe(args):
     # 這樣的調整大幅降低了模型的參數量和記憶體需求，使其能夠在有限的 GPU 記憶體中運行
     recipe.model.config.num_layers = 1
     recipe.model.config.hidden_size = 128
+    
     recipe.model.config.seq_length = args.seq_length
     recipe.data.seq_length = args.seq_length
     recipe.data, one_epoch_steps = configure_dataset(args, seq_length=recipe.data.seq_length)
     recipe.trainer.devices = args.num_gpus
     
     recipe.trainer.max_steps = args.max_steps or one_epoch_steps
-    recipe.trainer.val_check_interval = one_epoch_steps // 5 if one_epoch_steps > 1000 else recipe.trainer.max_steps
+    recipe.trainer.val_check_interval = 10
     recipe.trainer.num_sanity_val_steps = 0
     
     recipe.trainer.strategy.tensor_model_parallel_size = args.tensor_model_parallel_size
@@ -125,6 +126,8 @@ def configure_recipe(args):
 
     recipe.log.ckpt.save_optim_on_train_end = True
     recipe.log.ckpt.save_top_k = 10
+    recipe.log.ckpt.every_n_train_steps = recipe.trainer.val_check_interval
+    recipe.log.ckpt.train_time_interval = None
 
     if args.wandb:
         recipe.log.wandb = run.Config(

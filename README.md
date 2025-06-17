@@ -160,7 +160,7 @@ PP=1  # Pipeline Parallel
 CP=1  # Context Parallel
 
 # 訓練參數
-GBS=8          # Global Batch Size
+GBS=4          # Global Batch Size
 MAX_STEPS=20  # 最大訓練步數(模型權重更新次數)
 DATASET_PATH=data/custom_dataset/preprocessed/
 ```
@@ -276,8 +276,8 @@ PP=1
 CP=1
 
 # 微調參數
-MAX_STEPS=20
-GBS=8
+MAX_STEPS=10
+GBS=4
 DATASET_PATH=data/alpaca
 
 # 執行 LoRA 微調
@@ -313,15 +313,20 @@ mkdir -p data/reasoning_dataset/
 
 # 下載 NVIDIA Llama-Nemotron 後訓練資料集
 wget https://huggingface.co/datasets/nvidia/Llama-Nemotron-Post-Training-Dataset/resolve/main/SFT/chat/chat.jsonl -P data/reasoning_dataset/
+
+# 從資料集中選取樣本進行快速訓練
+head -n 100 data/reasoning_dataset/chat.jsonl > data/reasoning_dataset/chat_subset.jsonl
 ```
 
 #### 4.2 資料預處理與策展
 
 ```bash
+export UCX_MEMTYPE_CACHE=n
+export UCX_TLS=tcp
 # 執行資料策展與預處理
 python data_preparation/curate_reasoning_data.py \
     --input-dir "data/reasoning_dataset" \
-    --filename-filter "chat" \
+    --filename-filter "chat_subset" \
     --remove-columns "category" "generator" "license" "reasoning" "system_prompt" "used_in_training" "version" \
     --json-files-per-partition 16 \
     --tokenizer "meta-llama/Llama-3.1-8B-Instruct" \
@@ -349,8 +354,8 @@ PP=1
 CP=1
 
 # 微調參數
-MAX_STEPS=20
-GBS=8
+MAX_STEPS=10
+GBS=4
 DATASET_PATH=data/reasoning_dataset/curated-data
 
 # 執行 Reasoning LoRA 微調
@@ -369,7 +374,8 @@ python finetuning/finetune.py \
     --pipeline_model_parallel_size ${PP} \
     --context_parallel_size ${CP} \
     --dataset_path ${DATASET_PATH} \
-    --peft lora
+    --peft lora \
+    --seq_length 1024
 ```
 
 > 🧠 **Reasoning 微調特色**：使用高品質的推理資料集，提升模型的邏輯推理和複雜問題解決能力

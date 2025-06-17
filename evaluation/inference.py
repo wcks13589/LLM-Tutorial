@@ -2,7 +2,7 @@ import argparse
 import nemo_run as run
 from nemo import lightning as nl
 from nemo.collections import llm
-from nemo.collections.llm.recipes.precision.mixed_precision import bf16_mixed
+from nemo.collections.llm.recipes.precision.mixed_precision import fp16_mixed
 from megatron.core.inference.common_inference_params import CommonInferenceParams
 
 def parse_args():
@@ -26,7 +26,7 @@ def create_trainer() -> run.Config[nl.Trainer]:
         devices=1,
         num_nodes=1,
         strategy=strategy,
-        plugins=bf16_mixed(),
+        plugins=fp16_mixed(),
     )
 
 def configure_inference(args):
@@ -35,7 +35,7 @@ def configure_inference(args):
         path=args.peft_ckpt_path,
         trainer=create_trainer(),
         input_dataset=args.input_dataset,
-        max_batch_size=2,
+        max_batch_size=1,
         inference_params=CommonInferenceParams(num_tokens_to_generate=20, top_k=1),
         output_path=args.output_path,
     )
