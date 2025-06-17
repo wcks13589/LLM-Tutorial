@@ -64,6 +64,7 @@ docker run \
 ```bash
 git clone https://github.com/wcks13589/LLM-Tutorial.git
 cd LLM-Tutorial
+pip install -U click
 ```
 
 > 💡 **提示**：請確保在 `LLM-Tutorial` 專案目錄中執行後續指令。
