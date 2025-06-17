@@ -321,12 +321,15 @@ mkdir -p data/reasoning_dataset/
 wget https://huggingface.co/datasets/nvidia/Llama-Nemotron-Post-Training-Dataset/resolve/main/SFT/chat/chat.jsonl -P data/reasoning_dataset/
 
 # 從資料集中選取樣本進行快速訓練
-head -n 100 data/reasoning_dataset/chat.jsonl > data/reasoning_dataset/chat_subset.jsonl
+head -n 200 data/reasoning_dataset/chat.jsonl > data/reasoning_dataset/chat_subset.jsonl
 ```
 
 #### 4.2 資料預處理與策展
 
 ```bash
+export UCX_MEMTYPE_CACHE=n
+export UCX_TLS=tcp
+
 # 執行資料策展與預處理
 python data_preparation/curate_reasoning_data.py \
     --input-dir "data/reasoning_dataset" \
@@ -424,13 +427,38 @@ python /opt/NeMo/scripts/metric_calculation/peft_metric_calc.py \
 
 ### 第六章：模型部署與轉換
 
-#### 6.1 轉換回 Hugging Face 格式
+> ⚠️ **重要提醒**：如果您進行的是 LoRA 微調，請先執行步驟 6.1 合併 LoRA 權重，再進行步驟 6.2 的格式轉換。
+
+#### 6.1 合併 LoRA 權重（僅限 LoRA 微調）
+
+如果您使用了 LoRA 進行微調（在微調指令中包含 `--peft lora`），您需要先將 LoRA 權重合併回基底模型，然後再進行格式轉換：
+
+```bash
+# 找到最新的 LoRA checkpoint
+LATEST_LORA_CHECKPOINT=$(find nemo_experiments/llama31_reasoning_finetuning/checkpoints/ -type d -name "*-last" | sort -r | head -n 1)
+NEMO_MODEL=nemo_experiments/llama31_reasoning_finetuning/checkpoints/nemo_ckpt_merged
+
+# 合併 LoRA 權重到基底模型
+python finetuning/merge_lora.py \
+    --nemo_lora_model ${LATEST_LORA_CHECKPOINT} \
+    --output_path ${NEMO_MODEL}
+```
+
+> 💡 **說明**：
+> - 此步驟會將 LoRA 適配器的權重合併到原始的基底模型中
+> - 合併後的模型包含完整的權重，可以獨立使用
+> - 如果您進行的是全參數微調，請跳過此步驟
+
+#### 6.2 轉換回 Hugging Face 格式
 
 ```bash
 # 設定轉換參數
-NEMO_MODEL=nemo_ckpt/Llama-3.1-8B-Instruct
-# LATEST_CHECKPOINT=$(find nemo_experiments/llama31_finetuning/checkpoints/ -type d -name "*-last" | sort -r | head -n 1)
-OUTPUT_PATH=hf_ckpt
+# 如果您完成了 LoRA 合併，請使用合併後的模型路徑：
+NEMO_MODEL=nemo_experiments/llama31_reasoning_finetuning/checkpoints/nemo_ckpt_merged
+# 
+# 如果您進行的是全參數微調，請使用：
+# NEMO_MODEL=$(find nemo_experiments/llama31_reasoning_finetuning/checkpoints/ -type d -name "*-last" | sort -r | head -n 1)
+OUTPUT_PATH=hf_ckpt/
 
 # 執行轉換
 nemo llm export -y \
@@ -491,18 +519,16 @@ lm_eval --model hf \
 您也可以嘗試其他常見的評估任務：
 
 ```bash
-# 評估多個任務（示例）
 lm_eval --model hf \
     --model_args pretrained=hf_ckpt/ \
-    --tasks arc_easy,arc_challenge,boolq \
+    --tasks arc_challenge \
     --device cuda:0 \
     --batch_size 8
 ```
 
-> 📊 **評估指標說明**：
+> 📊 **評估任務說明**：
 > - **LAMBADA OpenAI**：測試語言建模和上下文理解能力，評估模型預測句子最後一個詞的準確性
 > - **ARC (AI2 Reasoning Challenge)**：測試科學推理能力
-> - **BoolQ**：測試是非題回答能力
 > 
 > 🔧 **調優提示**：
 > - 可根據 GPU 記憶體調整 `batch_size` 參數
