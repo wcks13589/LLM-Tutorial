@@ -26,6 +26,7 @@
   - [第四章：Reasoning 資料微調技術](#第四章reasoning-資料微調技術)
   - [第五章：模型評估與測試](#第五章模型評估與測試)
   - [第六章：模型部署與轉換](#第六章模型部署與轉換)
+  - [第七章：標準化模型評估](#第七章標準化模型評估)
 - [💡 實戰技巧](#💡-實戰技巧)
 - [📚 進階學習資源](#📚-進階學習資源)
 
@@ -424,14 +425,88 @@ python /opt/NeMo/scripts/metric_calculation/peft_metric_calc.py \
 
 ```bash
 # 設定轉換參數
+NEMO_MODEL=nemo_ckpt/Llama-3.1-8B-Instruct
+# LATEST_CHECKPOINT=$(find nemo_experiments/llama31_finetuning/checkpoints/ -type d -name "*-last" | sort -r | head -n 1)
 OUTPUT_PATH=hf_ckpt
 
 # 執行轉換
 nemo llm export -y \
-    path=${LATEST_CHECKPOINT} \
+    path=${NEMO_MODEL} \
     output_path=${OUTPUT_PATH} \
     target=hf
 ```
+
+---
+
+### 第七章：標準化模型評估
+
+#### 7.1 安裝評估工具
+
+使用 EleutherAI 的 lm-evaluation-harness 工具進行標準化模型評估：
+
+```bash
+# 下載並安裝 lm-evaluation-harness
+git clone --depth 1 https://github.com/EleutherAI/lm-evaluation-harness
+cd lm-evaluation-harness
+pip install -e .
+```
+
+#### 7.2 執行標準化評估
+
+使用 LAMBADA OpenAI 任務評估模型的語言建模能力：
+
+```bash
+# 切換回主目錄
+cd ..
+
+# 執行 LAMBADA OpenAI 評估 (僅使用較少樣本進行快速評估)
+lm_eval --model hf \
+    --model_args pretrained=hf_ckpt/ \
+    --tasks lambada_openai \
+    --device cuda:0 \
+    --batch_size 8 \
+    --limit 100
+```
+
+**執行結果範例**：
+
+```
+|    Tasks     |Version|Filter|n-shot|  Metric  |   |Value |   |Stderr|
+|--------------|------:|------|-----:|----------|---|-----:|---|-----:|
+|lambada_openai|      1|none  |     0|acc       |↑  |0.7100|±  |0.0456|
+|              |       |none  |     0|perplexity|↓  |3.4032|±  |0.5080|
+```
+
+**結果指標說明**：
+- **acc (準確率)**：模型正確預測句子最後一個詞的比例，本例為 71%
+- **perplexity (困惑度)**：衡量模型對文本的不確定性，數值越低越好
+
+> 💡 **結果分析**：準確率 > 70% 通常表示模型具有良好的語言理解能力
+
+#### 7.3 其他評估任務
+
+您也可以嘗試其他常見的評估任務：
+
+```bash
+# 評估多個任務（示例）
+lm_eval --model hf \
+    --model_args pretrained=hf_ckpt/ \
+    --tasks arc_easy,arc_challenge,boolq \
+    --device cuda:0 \
+    --batch_size 8
+```
+
+> 📊 **評估指標說明**：
+> - **LAMBADA OpenAI**：測試語言建模和上下文理解能力，評估模型預測句子最後一個詞的準確性
+> - **ARC (AI2 Reasoning Challenge)**：測試科學推理能力
+> - **BoolQ**：測試是非題回答能力
+> 
+> 🔧 **調優提示**：
+> - 可根據 GPU 記憶體調整 `batch_size` 參數
+> - 使用 `--limit` 參數進行快速測試
+> - 詳細的評估結果會顯示準確率和其他相關指標
+
+---
 
 ## 📚 進階學習資源
 
