@@ -2,7 +2,6 @@
 
 此文件說明如何使用 `pretraining.py` 腳本進行大型語言模型 Llama 3.1-8B 的預訓練。該腳本培於 NVIDIA NeMo 平臺，並利用 PyTorch Lightning 與 NeMo 進行預訓練工作。
 
-
 ## 主要功能
 
 - 配置資料集的路徑與參數。

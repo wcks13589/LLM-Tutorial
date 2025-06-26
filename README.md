@@ -567,6 +567,6 @@ lm_eval --model hf \
 
 ---
 
-> 💬 **需要幫助？** 歡迎在 [Issues](https://github.com/wcks13589/NeMo-Tutorial/issues) 中提出問題或建議！
+> 💬 **需要幫助？** 歡迎在 [Issues](https://github.com/wcks13589/LLM-Tutorial/issues) 中提出問題或建議！
 
 **Happy Learning! 🚀**
